@@ -1,8 +1,11 @@
 const express = require("express");
 const router = express.Router();
 
-// CAR
-const carAPI = require("./car.api");
-router.use("/cars", carAPI);
+// userRoute
+const userAPI = require("./user.api");
+router.use("/users", userAPI);
+
+const taskAPI = require("./task.api");
+router.use("/tasks", taskAPI);
 
 module.exports = router;
