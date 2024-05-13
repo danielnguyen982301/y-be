@@ -73,36 +73,14 @@ taskController.getSingleTask = async (req, res, next) => {
   try {
     const { taskId } = req.params;
 
-    const task = await Task.findOne({ _id: taskId, isDeleted: false });
+    const task = await Task.findOne({ _id: taskId, isDeleted: false }).populate(
+      "assignee"
+    );
     if (!task) {
       throw new AppError(404, "Task Not Found", "Not Found");
     }
 
     sendResponse(res, 200, { task }, null, "Get Task Successfully!");
-  } catch (err) {
-    next(err);
-  }
-};
-
-taskController.assignTask = async (req, res, next) => {
-  try {
-    const { taskId } = req.params;
-    const { userId } = req.body;
-    const task = await Task.findById(taskId);
-    const user = await User.findById(userId);
-    if (!task) {
-      throw new AppError(404, "Task Not Found", "Not Found");
-    }
-    if (!user) {
-      throw new AppError(404, "User Not Found", "Not Found");
-    }
-
-    task.assignee = userId;
-    user.tasks.push(taskId);
-    await user.save();
-    task = await task.save();
-
-    sendResponse(res, 200, { task }, null, "Assign Task List Successfully!");
   } catch (err) {
     next(err);
   }
