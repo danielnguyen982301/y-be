@@ -1,12 +1,12 @@
-const express = require("express");
-const path = require("path");
-const cookieParser = require("cookie-parser");
-const logger = require("morgan");
-const cors = require("cors");
-const indexRouter = require("./routes/index");
-const mongoose = require("mongoose");
-const { AppError, sendResponse } = require("./helpers/utils");
-require("dotenv/config");
+import express, { NextFunction, Request, Response } from "express";
+import path from "path";
+import cookieParser from "cookie-parser";
+import logger from "morgan";
+import cors from "cors";
+import "dotenv/config";
+import mongoose from "mongoose";
+import { AppError, sendResponse } from "./helpers/utils";
+import indexRouter from "./routes/index";
 
 const app = express();
 
@@ -19,18 +19,18 @@ app.use(express.static(path.join(__dirname, "public")));
 
 // Connect to MONGODB
 mongoose
-  .connect(process.env.MONGO_URI)
+  .connect(process.env.MONGO_URI as string)
   .then(() => console.log("Connected to Database!"))
   .catch((err) => console.log(err));
 
-app.use("/", indexRouter);
+app.use("/api", indexRouter);
 
 app.use((req, res, next) => {
-  const err = new AppError(404, "Not Found", "Bad Request");
+  const err = new AppError(404, "Path Not Found", "Request Error");
   next(err);
 });
 
-app.use((err, req, res, next) => {
+app.use((err: AppError, req: Request, res: Response, next: NextFunction) => {
   console.log("ERROR", err);
   return sendResponse(
     res,
@@ -41,4 +41,4 @@ app.use((err, req, res, next) => {
   );
 });
 
-module.exports = app;
+export default app;

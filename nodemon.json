@@ -1,0 +1,13 @@
+{
+  "watch": [
+    "controllers",
+    "helpers",
+    "middlewares",
+    "models",
+    "routes",
+    "validations"
+  ],
+  "ext": "ts,json",
+  "ignore": ["src/**/*.spec.ts"],
+  "exec": "ts-node"
+}
