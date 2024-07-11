@@ -9,6 +9,17 @@ type Callback = (
   next: NextFunction
 ) => Promise<Response>;
 
+export type Message = {
+  content: string;
+  from: string;
+  to: string;
+};
+
+export type ChatSession = {
+  userId: string;
+  username: string;
+};
+
 export const sendResponse = (
   res: Response,
   status: number,
@@ -42,5 +53,54 @@ export class AppError extends Error {
     this.errorType = errorType;
     this.isOperational = true;
     Error.captureStackTrace(this, this.constructor);
+  }
+}
+
+class SessionStore {
+  findSession(id: string) {}
+  saveSession(id: string, session: ChatSession) {}
+  findAllSessions() {}
+}
+
+export class InMemorySessionStore extends SessionStore {
+  sessions: Map<string, ChatSession>;
+  constructor() {
+    super();
+    this.sessions = new Map();
+  }
+
+  findSession(id: string) {
+    return this.sessions.get(id);
+  }
+
+  saveSession(id: string, session: ChatSession) {
+    this.sessions.set(id, session);
+  }
+
+  findAllSessions() {
+    return [...this.sessions.values()];
+  }
+}
+
+/* abstract */ class MessageStore {
+  saveMessage(message: Message) {}
+  findMessagesForUser(userId: string) {}
+}
+
+export class InMemoryMessageStore extends MessageStore {
+  messages: Message[];
+  constructor() {
+    super();
+    this.messages = [];
+  }
+
+  saveMessage(message: Message) {
+    this.messages.push(message);
+  }
+
+  findMessagesForUser(userId: string) {
+    return this.messages.filter(
+      ({ from, to }) => from === userId || to === userId
+    );
   }
 }

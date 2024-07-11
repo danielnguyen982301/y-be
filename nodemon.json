@@ -5,7 +5,8 @@
     "middlewares",
     "models",
     "routes",
-    "validations"
+    "validations",
+    "bin"
   ],
   "ext": "ts,json",
   "ignore": ["src/**/*.spec.ts"],
