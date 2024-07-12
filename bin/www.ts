@@ -26,11 +26,12 @@ type ServerToClientEvents = {
   session: (session: { sessionId: string; userId: string }) => void;
   users: (users: ChatUser[]) => void;
   privateMessage: (message: Message) => void;
+  newMessages: (numberOfMes: number) => void;
 };
 
 type ClientToServerEvents = {
-  privateMessage: (messageTo: Omit<Message, "from">) => void;
-  getChatUsers: () => void;
+  privateMessage: (message: Message) => void;
+  newMessages: (numberOfMes: number) => void;
 };
 
 type InterServerEvents = {
@@ -38,9 +39,9 @@ type InterServerEvents = {
 };
 
 type SocketData = {
-  sessionId: string;
+  // sessionId: string;
   userId: string;
-  username: string;
+  // username: string;
 };
 
 const debug = debugM("backend:server");
@@ -72,84 +73,25 @@ const sessionStore = new InMemorySessionStore();
 const messageStore = new InMemoryMessageStore();
 
 io.use((socket, next) => {
-  const sessionId = socket.handshake.auth.sessionId;
-  if (sessionId) {
-    const session = sessionStore.findSession(sessionId);
-    if (session) {
-      socket.data.sessionId = sessionId;
-      socket.data.userId = session.userId;
-      socket.data.username = session.username;
-      return next();
-    }
-  }
-  const { userId, username } = socket.handshake.auth;
-  if (!userId) {
-    console.log("auth error");
-    return next(new Error("invalid user"));
-  }
-  socket.data.sessionId = `${Date.now()}-${Math.random()}`;
+  const { userId } = socket.handshake.auth;
   socket.data.userId = userId;
-  socket.data.username = username;
   next();
 });
 
 io.on("connection", (socket) => {
-  // persist session
-  sessionStore.saveSession(socket.data.sessionId, {
-    userId: socket.data.userId,
-    username: socket.data.username,
-  });
-
-  // emit session details
-  socket.emit("session", {
-    sessionId: socket.data.sessionId,
-    userId: socket.data.userId,
-  });
-
-  // join the "userID" room
   socket.join(socket.data.userId);
 
-  // fetch existing users
-  const users: ChatUser[] = [];
-  const messagesPerUser = new Map();
-  messageStore.findMessagesForUser(socket.data.userId).forEach((message) => {
-    const { from, to } = message;
-    const otherUser = socket.data.userId === from ? to : from;
-    if (messagesPerUser.has(otherUser)) {
-      messagesPerUser.get(otherUser).push(message);
-    } else {
-      messagesPerUser.set(otherUser, [message]);
-    }
-  });
-  sessionStore.findAllSessions().forEach((session) => {
-    users.push({
-      userId: session.userId,
-      username: session.username,
-      messages: messagesPerUser.get(session.userId) || [],
-    });
-  });
-
-  socket.on("getChatUsers", () => {
-    socket.emit("users", users);
-  });
-
-  // notify existing users
-  // socket.broadcast.emit("user connected", {
-  //   userID: socket.userID,
-  //   username: socket.username,
-  //   connected: true,
-  //   messages: [],
-  // });
-
   // forward the private message to the right recipient (and to other tabs of the sender)
-  socket.on("privateMessage", ({ content, to }) => {
-    const message = {
-      content,
-      from: socket.data.userId,
-      to,
-    };
-    socket.to(to).to(socket.data.userId).emit("privateMessage", message);
-    messageStore.saveMessage(message);
+  socket.on("privateMessage", (message) => {
+    socket
+      .to(message.to)
+      .to(socket.data.userId)
+      .emit("privateMessage", message);
+    // messageStore.saveMessage(message);
+  });
+
+  socket.on("newMessages", (newMessages) => {
+    socket.emit("newMessages", newMessages);
   });
 
   // notify users upon disconnection

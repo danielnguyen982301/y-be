@@ -13,8 +13,12 @@ const bookmarkSchema = new Schema<BookmarkSchema>(
       required: true,
       ref: "User",
     },
-    targetType: { type: String, enum: ["Post", "Reply"] },
-    target: { type: Schema.Types.ObjectId, refPath: "targetType" },
+    targetType: { type: String, enum: ["Post", "Reply"], required: true },
+    target: {
+      type: Schema.Types.ObjectId,
+      required: true,
+      refPath: "targetType",
+    },
   },
   { timestamps: true }
 );

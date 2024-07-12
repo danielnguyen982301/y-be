@@ -10,9 +10,13 @@ type Callback = (
 ) => Promise<Response>;
 
 export type Message = {
+  _id: string;
   content: string;
   from: string;
   to: string;
+  isRead: boolean;
+  createdAt: string;
+  [key: string]: any;
 };
 
 export type ChatSession = {

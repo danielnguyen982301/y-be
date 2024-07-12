@@ -18,7 +18,7 @@ export const joiValidate =
     const { error, value } = schema[property].validate(req[property]);
     if (error) {
       const message = error.details[0].message;
-      return sendResponse(res, 422, null, message, "Validation Error");
+      return sendResponse(res, 400, null, message, "Validation Error");
     }
     req[property] = value;
     next();
