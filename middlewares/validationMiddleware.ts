@@ -4,7 +4,6 @@ import { NextFunction, Response } from "express";
 import Joi from "joi";
 
 export const checkValidID = (paramsID: Types.ObjectId) => {
-  console.log(paramsID);
   if (!mongoose.Types.ObjectId.isValid(paramsID)) throw new Error("Invalid ID");
   return paramsID;
 };

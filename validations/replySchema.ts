@@ -5,7 +5,7 @@ export const createReplySchema = {
   body: Joi.object({
     content: Joi.string()
       .required()
-      .regex(/^[\w\s\.,#@\?!\$%&\*\(\)\^\[\]'";:\-]+$/)
+      .regex(/^[\w\s\.,#@\?!\$%&\*\(\)\^\[\]'";:\+\-]+$/)
       .trim(),
     mediaFile: Joi.string().allow("").optional(),
     targetType: Joi.string().required().valid("Post", "Reply"),
@@ -54,7 +54,7 @@ export const updateReplySchema = {
   }),
   body: Joi.object({
     content: Joi.string()
-      .regex(/^[\w\s\.,#@\?!\$%&\*\(\)\^\[\]'";:\-]+$/)
+      .regex(/^[\w\s\.,#@\?!\$%&\*\(\)\^\[\]'";:\+\-]+$/)
       .trim()
       .optional(),
     mediaFile: Joi.string().allow("").optional(),

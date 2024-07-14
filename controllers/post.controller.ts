@@ -7,6 +7,7 @@ import Follow from "../models/Follow";
 import Like from "../models/Like";
 import Bookmark from "../models/Bookmark";
 import Reply from "../models/Reply";
+import Notification from "../models/Notification";
 
 const calculatePostCount = async (userId: Types.ObjectId) => {
   const postCount = await UserThread.countDocuments({
@@ -75,9 +76,18 @@ export const createRepostOfPost = catchAsync(async (req, res, next) => {
     repost: repostId,
   });
 
+  if (!post.author.equals(currentUserId)) {
+    await Notification.create({
+      sender: currentUserId,
+      event: "repost",
+      recipient: post.author,
+      repostType: "Post",
+      repost: repostId,
+    });
+  }
+
   await calculatePostCount(currentUserId);
   const repostCount = await calculateRepostCount(repostId);
-  thread = await thread.populate("repost");
 
   return sendResponse(
     res,
@@ -99,6 +109,14 @@ export const undoRepostOfPost = catchAsync(async (req, res, next) => {
   if (!thread) throw new AppError(404, "Repost Not Found", "Undo Repost Error");
 
   await thread.delete();
+  await Notification.deleteOne({
+    sender: currentUserId,
+    event: "repost",
+    recipient: post.author,
+    repostType: "Post",
+    repost: repostId,
+  });
+
   await calculatePostCount(currentUserId);
   const repostCount = await calculateRepostCount(repostId);
 
@@ -128,8 +146,6 @@ export const updateSinglePost = catchAsync(async (req, res, next) => {
     }
   });
   await post.save();
-
-  // post = await Post.findByIdAndUpdate(postId, req.body, { new: true });
 
   return sendResponse(res, 200, post, null, "Update Post Successfully");
 });
@@ -252,7 +268,7 @@ export const getAllOriginalPosts = catchAsync(async (req, res, next) => {
 
   const authorIds = posts.map((post) => {
     let temp = post.toJSON() as Record<string, any>;
-    return temp.post ? temp.post.author._id : temp.reply.author._id;
+    return temp.post.author._id;
   });
 
   const relationships = await Follow.find({
@@ -363,6 +379,21 @@ export const getThreadsOfFolloweesAndCurrentUser = catchAsync(
         populate: [{ path: "author" }, { path: "target", populate: "author" }],
       });
 
+    const populatedPosts = await Promise.all(
+      posts.map(async (post) => {
+        if (post.repostType === "Reply") {
+          return await post.populate({
+            path: "repost",
+            populate: [
+              { path: "author" },
+              { path: "target", populate: "author" },
+            ],
+          });
+        }
+        return post;
+      })
+    );
+
     const postIds = posts.map((post) => post.post || post.repost || post.reply);
 
     const likedPosts = await Like.find({
@@ -416,7 +447,7 @@ export const getThreadsOfFolloweesAndCurrentUser = catchAsync(
 
     const fields = ["post", "repost", "reply"];
 
-    const postsWithContent = posts.map((post) => {
+    const postsWithContent = populatedPosts.map((post) => {
       let temp = post.toJSON() as Record<string, any>;
       fields.forEach((field) => {
         if (temp[field]) {
@@ -503,6 +534,21 @@ export const getPostsOfSingleUser = catchAsync(async (req, res, next) => {
     })
     .populate({ path: "repost", populate: "author" });
 
+  const populatedPosts = await Promise.all(
+    posts.map(async (post) => {
+      if (post.repostType === "Reply") {
+        return await post.populate({
+          path: "repost",
+          populate: [
+            { path: "author" },
+            { path: "target", populate: "author" },
+          ],
+        });
+      }
+      return post;
+    })
+  );
+
   const postIds = posts.map((post) => post.post || post.repost);
 
   const likedPosts = await Like.find({
@@ -559,7 +605,7 @@ export const getPostsOfSingleUser = catchAsync(async (req, res, next) => {
 
   const fields = ["post", "repost", "reply"];
 
-  const postsWithContent = posts.map((post) => {
+  const postsWithContent = populatedPosts.map((post) => {
     let temp = post.toJSON() as Record<string, any>;
     fields.forEach((field) => {
       if (temp[field]) {
@@ -604,14 +650,25 @@ export const deleteSinglePost = catchAsync(async (req, res, next) => {
   const relatedReplies = await Reply.find({ links: postId });
   const relatedReplyIds = relatedReplies.map((reply) => reply._id);
   const relatedReplyAndPostIds = [post._id, ...relatedReplyIds];
-
-  await Bookmark.deleteMany({ target: { $in: relatedReplyAndPostIds } });
-  await Like.deleteMany({ target: { $in: relatedReplyAndPostIds } });
-  await UserThread.deleteMany({
+  const relatedThreads = await UserThread.find({
     $or: [
       { post: postId },
       { reply: { $in: relatedReplyIds } },
       { repost: { $in: relatedReplyAndPostIds } },
+    ],
+  });
+  const relatedThreadIds = relatedThreads.map((thread) => thread._id);
+
+  await Bookmark.deleteMany({ target: { $in: relatedReplyAndPostIds } });
+  await Like.deleteMany({ target: { $in: relatedReplyAndPostIds } });
+  await UserThread.deleteMany({
+    _id: { $in: relatedThreadIds },
+  });
+  await Notification.deleteMany({
+    $or: [
+      { mentionLocation: { $in: relatedReplyAndPostIds } },
+      { repost: { $in: relatedReplyAndPostIds } },
+      { reply: { $in: relatedReplyIds } },
     ],
   });
   await Reply.deleteMany({ _id: { $in: relatedReplyIds } });

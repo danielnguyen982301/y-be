@@ -46,7 +46,7 @@ router.get(
 /**
  * @route PUT /messages/status
  * @description Update status of messages , {isRead: true}
- * @body {messages: []}
+ * @body {messages: [messageId]}
  * @access Login required
  */
 

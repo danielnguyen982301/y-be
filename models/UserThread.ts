@@ -25,7 +25,6 @@ const userThreadSchema = new Schema<UserThreadSchema>(
 
 userThreadSchema.methods.toJSON = function () {
   const thread = this._doc;
-  delete thread.isDeleted;
   return thread;
 };
 

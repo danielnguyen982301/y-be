@@ -29,7 +29,6 @@ const postSchema = new Schema<PostSchema>(
 
 postSchema.methods.toJSON = function () {
   const post = this._doc;
-  delete post.isDeleted;
   return post;
 };
 

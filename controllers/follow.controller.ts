@@ -3,6 +3,7 @@ import Friend from "../models/Follow";
 import { AppError, catchAsync, sendResponse } from "../helpers/utils";
 import User from "../models/User";
 import Follow from "../models/Follow";
+import Notification from "../models/Notification";
 
 const calculateFollowCount = async (
   followerId: Types.ObjectId,
@@ -39,6 +40,14 @@ export const followUser = catchAsync(async (req, res, next) => {
     throw new AppError(400, "You already followed this user", "Follow Error");
   }
 
+  await Notification.create({
+    sender: currentUserId,
+    event: "follow",
+    recipient: targetUserId,
+  });
+
+  follow = await follow.populate("follower");
+
   await calculateFollowCount(currentUserId, targetUserId);
 
   return sendResponse(res, 200, follow, null, "Follow Successfully");
@@ -53,6 +62,12 @@ export const unfollowUser = catchAsync(async (req, res, next) => {
     followee: targetUserId,
   });
   if (!follow) throw new AppError(404, "Follow Not Found", "Unfollow Error");
+
+  await Notification.deleteOne({
+    sender: currentUserId,
+    event: "follow",
+    recipient: targetUserId,
+  });
 
   await follow.delete();
 

@@ -7,6 +7,7 @@ import Like from "../models/Like";
 import User from "../models/User";
 import Post from "../models/Post";
 import Bookmark from "../models/Bookmark";
+import Notification from "../models/Notification";
 
 const calculatePostCount = async (userId: Types.ObjectId) => {
   const postCount = await UserThread.countDocuments({
@@ -359,7 +360,7 @@ export const getSingleReply = catchAsync(async (req, res, next) => {
 });
 
 export const createNewReply = catchAsync(async (req, res, next) => {
-  const currentUserId = req.userId;
+  const currentUserId = req.userId as Types.ObjectId;
   const { content, mediaFile, targetType, targetId, links } = req.body;
 
   // Check if post or reply exists
@@ -377,10 +378,25 @@ export const createNewReply = catchAsync(async (req, res, next) => {
     links,
   });
 
+  reply = await reply.populate("target");
+
   await UserThread.create({
     user: currentUserId,
     reply: reply._id,
   });
+
+  const populatedReply = reply.toJSON() as Record<string, any>;
+  const targetAuthor = new mongoose.Types.ObjectId(
+    populatedReply.target.author
+  );
+  if (!targetAuthor.equals(currentUserId)) {
+    await Notification.create({
+      sender: currentUserId,
+      event: "reply",
+      recipient: populatedReply.target.author,
+      reply: reply._id,
+    });
+  }
 
   // Update comment count of the reply
   const replyCount = await calculateReplyCount(targetId, targetType);
@@ -420,9 +436,18 @@ export const createRepostOfReply = catchAsync(async (req, res, next) => {
     repost: repostId,
   });
 
+  if (!reply.author.equals(currentUserId)) {
+    await Notification.create({
+      sender: currentUserId,
+      event: "repost",
+      recipient: reply.author,
+      repostType: "Reply",
+      repost: repostId,
+    });
+  }
+
   await calculatePostCount(currentUserId);
   const repostCount = await calculateRepostCount(repostId);
-  thread = await thread.populate("repost");
 
   return sendResponse(
     res,
@@ -444,6 +469,14 @@ export const undoRepostOfReply = catchAsync(async (req, res, next) => {
   if (!thread) throw new AppError(404, "Repost Not Found", "Undo Repost Error");
 
   await thread.delete();
+  await Notification.deleteOne({
+    sender: currentUserId,
+    event: "repost",
+    recipient: reply.author,
+    repostType: "Reply",
+    repost: repostId,
+  });
+
   await calculatePostCount(currentUserId);
   const repostCount = await calculateRepostCount(repostId);
 
@@ -491,6 +524,13 @@ export const deleteSingleReply = catchAsync(async (req, res, next) => {
     reply._id,
     ...relatedReplies.map((reply) => reply._id),
   ];
+  const relatedThreads = await UserThread.find({
+    $or: [
+      { reply: { $in: relatedReplyIds } },
+      { repostType: "Reply", repost: { $in: relatedReplyIds } },
+    ],
+  });
+  const relatedThreadIds = relatedThreads.map((thread) => thread._id);
 
   await Bookmark.deleteMany({
     targetType: "Reply",
@@ -501,9 +541,13 @@ export const deleteSingleReply = catchAsync(async (req, res, next) => {
     target: { $in: relatedReplyIds },
   });
   await UserThread.deleteMany({
+    _id: { $in: relatedThreadIds },
+  });
+  await Notification.deleteMany({
     $or: [
+      { mentionLocation: { $in: relatedReplyIds } },
+      { repost: { $in: relatedReplyIds } },
       { reply: { $in: relatedReplyIds } },
-      { repostType: "Reply", repost: { $in: relatedReplyIds } },
     ],
   });
   await Reply.deleteMany({ _id: { $in: relatedReplyIds } });

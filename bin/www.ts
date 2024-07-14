@@ -16,22 +16,25 @@ import {
 import { Types } from "mongoose";
 
 // import socket from 'socket.io';
-type ChatUser = {
-  userId: string;
-  username: string;
-  messages: Message[];
+
+type MentionNotif = {
+  sender: string;
+  recipient: string[];
+  event: "mention";
+  mentionLocationType: "Post" | "Reply";
+  mentionLocation: string;
 };
 
 type ServerToClientEvents = {
-  session: (session: { sessionId: string; userId: string }) => void;
-  users: (users: ChatUser[]) => void;
   privateMessage: (message: Message) => void;
-  newMessages: (numberOfMes: number) => void;
+  mentionNotif: () => void;
+  replyNotif: () => void;
 };
 
 type ClientToServerEvents = {
   privateMessage: (message: Message) => void;
-  newMessages: (numberOfMes: number) => void;
+  mentionNotif: (targets: string[]) => void;
+  replyNotif: (recipient: string) => void;
 };
 
 type InterServerEvents = {
@@ -69,9 +72,6 @@ const io = new Server<
   },
 });
 
-const sessionStore = new InMemorySessionStore();
-const messageStore = new InMemoryMessageStore();
-
 io.use((socket, next) => {
   const { userId } = socket.handshake.auth;
   socket.data.userId = userId;
@@ -90,8 +90,12 @@ io.on("connection", (socket) => {
     // messageStore.saveMessage(message);
   });
 
-  socket.on("newMessages", (newMessages) => {
-    socket.emit("newMessages", newMessages);
+  socket.on("mentionNotif", (mentionedTargets) => {
+    socket.to(mentionedTargets).emit("mentionNotif");
+  });
+
+  socket.on("replyNotif", (recipient) => {
+    socket.to(recipient).emit("replyNotif");
   });
 
   // notify users upon disconnection

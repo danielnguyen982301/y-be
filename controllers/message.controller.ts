@@ -106,6 +106,6 @@ export const updateMessageStatus = catchAsync(async (req, res, next) => {
     200,
     updatedStatusMessages,
     null,
-    "Create Message Successfully"
+    "Update Message Status Successfully"
   );
 });

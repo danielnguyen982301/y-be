@@ -8,6 +8,7 @@ import followAPI from "./follow.api";
 import hashtagAPI from "./hashtag.api";
 import bookmarkAPI from "./bookmark.api";
 import messageAPI from "./message.api";
+import notificationAPI from "./notification.api";
 import { loginRequired } from "../middlewares/authentication";
 
 const router = express.Router();
@@ -36,7 +37,10 @@ router.use("/hashtags", loginRequired, hashtagAPI);
 //bookmarkAPI
 router.use("/bookmarks", loginRequired, bookmarkAPI);
 
-//bookmarkAPI
+//messageAPI
 router.use("/messages", loginRequired, messageAPI);
+
+//notificationAPI
+router.use("/notifications", loginRequired, notificationAPI);
 
 export default router;

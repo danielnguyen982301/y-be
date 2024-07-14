@@ -5,7 +5,7 @@ export const createPostSchema = {
   body: Joi.object({
     content: Joi.string()
       .required()
-      .regex(/^[\w\s\.,#@\?!\$%&\*\(\)\^\[\]'";:\-]+$/)
+      .regex(/^[\w\s\.,#@\?!\$%&\*\(\)\^\[\]'";:\+\-]+$/)
       .trim(),
     mediaFile: Joi.string().allow("").optional(),
   }),
@@ -60,7 +60,7 @@ export const updatePostSchema = {
   }),
   body: Joi.object({
     content: Joi.string()
-      .regex(/^[\w\s\.,#@\?!\$%&\*\(\)\^\[\]'";:\-]+$/)
+      .regex(/^[\w\s\.,#@\?!\$%&\*\(\)\^\[\]'";:\+\-]+$/)
       .trim()
       .optional(),
     mediaFile: Joi.string().allow("").optional(),
