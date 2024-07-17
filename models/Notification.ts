@@ -19,7 +19,7 @@ const notificationSchema = new Schema<NotificationSchema>(
     event: {
       type: String,
       required: true,
-      enum: ["mention", "repost", "reply"],
+      enum: ["mention", "repost", "reply", "follow"],
     },
     mentionLocationType: { type: String, enum: ["Post", "Reply"] },
     mentionLocation: {
@@ -27,7 +27,7 @@ const notificationSchema = new Schema<NotificationSchema>(
       refPath: "mentionLocationType",
     },
     repostType: { type: String, enum: ["Post", "Reply"] },
-    repost: { type: Schema.Types.ObjectId, ref: "UserThread" },
+    repost: { type: Schema.Types.ObjectId, refPath: "repostType" },
     reply: { type: Schema.Types.ObjectId, ref: "Reply" },
     isRead: { type: Boolean, default: false },
   },

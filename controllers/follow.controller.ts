@@ -40,7 +40,7 @@ export const followUser = catchAsync(async (req, res, next) => {
     throw new AppError(400, "You already followed this user", "Follow Error");
   }
 
-  await Notification.create({
+  let notif = await Notification.create({
     sender: currentUserId,
     event: "follow",
     recipient: targetUserId,
@@ -48,9 +48,11 @@ export const followUser = catchAsync(async (req, res, next) => {
 
   follow = await follow.populate("follower");
 
+  notif = await notif.populate("sender");
+
   await calculateFollowCount(currentUserId, targetUserId);
 
-  return sendResponse(res, 200, follow, null, "Follow Successfully");
+  return sendResponse(res, 200, { follow, notif }, null, "Follow Successfully");
 });
 
 export const unfollowUser = catchAsync(async (req, res, next) => {
@@ -63,17 +65,23 @@ export const unfollowUser = catchAsync(async (req, res, next) => {
   });
   if (!follow) throw new AppError(404, "Follow Not Found", "Unfollow Error");
 
-  await Notification.deleteOne({
+  let notif = await Notification.findOneAndDelete({
     sender: currentUserId,
     event: "follow",
     recipient: targetUserId,
-  });
+  }).populate("sender");
 
   await follow.delete();
 
   await calculateFollowCount(currentUserId, targetUserId);
 
-  return sendResponse(res, 200, follow, null, "Unfollow Successfully");
+  return sendResponse(
+    res,
+    200,
+    { follow, notif },
+    null,
+    "Unfollow Successfully"
+  );
 });
 
 export const getFollowerList = catchAsync(async (req, res, next) => {

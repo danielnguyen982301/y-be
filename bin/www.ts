@@ -8,33 +8,26 @@ import app from "../app";
 import debugM from "debug";
 import http from "http";
 import { Server } from "socket.io";
-import {
-  InMemoryMessageStore,
-  InMemorySessionStore,
-  Message,
-} from "../helpers/utils";
-import { Types } from "mongoose";
+import { FollowNotif, Message, RepostNotif } from "../helpers/utils";
 
 // import socket from 'socket.io';
-
-type MentionNotif = {
-  sender: string;
-  recipient: string[];
-  event: "mention";
-  mentionLocationType: "Post" | "Reply";
-  mentionLocation: string;
-};
 
 type ServerToClientEvents = {
   privateMessage: (message: Message) => void;
   mentionNotif: () => void;
   replyNotif: () => void;
+  toggleRepostNotif: (notif: RepostNotif) => void;
+  toggleFollowNotif: (notif: FollowNotif) => void;
+  deleteNotif: () => void;
 };
 
 type ClientToServerEvents = {
   privateMessage: (message: Message) => void;
   mentionNotif: (targets: string[]) => void;
   replyNotif: (recipient: string) => void;
+  toggleRepostNotif: (notif: RepostNotif) => void;
+  toggleFollowNotif: (notif: FollowNotif) => void;
+  deleteNotif: (recipients: string[]) => void;
 };
 
 type InterServerEvents = {
@@ -42,9 +35,7 @@ type InterServerEvents = {
 };
 
 type SocketData = {
-  // sessionId: string;
   userId: string;
-  // username: string;
 };
 
 const debug = debugM("backend:server");
@@ -96,6 +87,18 @@ io.on("connection", (socket) => {
 
   socket.on("replyNotif", (recipient) => {
     socket.to(recipient).emit("replyNotif");
+  });
+
+  socket.on("toggleRepostNotif", (notif) => {
+    socket.to(notif.recipient).emit("toggleRepostNotif", notif);
+  });
+
+  socket.on("toggleFollowNotif", (notif) => {
+    socket.to(notif.recipient).emit("toggleFollowNotif", notif);
+  });
+
+  socket.on("deleteNotif", (recipients) => {
+    socket.to(recipients).emit("deleteNotif");
   });
 
   // notify users upon disconnection

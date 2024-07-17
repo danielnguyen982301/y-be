@@ -28,11 +28,11 @@ export const getHashTags = catchAsync(async (req, res, next) => {
       },
     },
     {
-      $sort: { itemsCount: -1 },
+      $sort: { postCount: -1 },
     },
   ];
 
-  if (searchText !== undefined) pipeline.push({ $limit: 8 });
+  if (searchText !== undefined) pipeline.push({ $limit: 10 });
 
   const hashtags = await Hashtag.aggregate(pipeline);
 

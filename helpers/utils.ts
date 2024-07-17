@@ -19,9 +19,38 @@ export type Message = {
   [key: string]: any;
 };
 
-export type ChatSession = {
-  userId: string;
-  username: string;
+export type RepostNotif = {
+  _id: string;
+  sender: {
+    _id: string;
+    avatar: string;
+    username: string;
+    displayName: string;
+    [key: string]: any;
+  };
+  event: "repost";
+  recipient: string;
+  repostType: "Post" | "Reply";
+  repost: {
+    _id: string;
+    author: { username: string; [key: string]: any };
+    content: string;
+  };
+  delete?: boolean;
+};
+
+export type FollowNotif = {
+  _id: string;
+  sender: {
+    _id: string;
+    avatar: string;
+    username: string;
+    displayName: string;
+    [key: string]: any;
+  };
+  event: "follow";
+  recipient: string;
+  delete?: boolean;
 };
 
 export const sendResponse = (
@@ -57,54 +86,5 @@ export class AppError extends Error {
     this.errorType = errorType;
     this.isOperational = true;
     Error.captureStackTrace(this, this.constructor);
-  }
-}
-
-class SessionStore {
-  findSession(id: string) {}
-  saveSession(id: string, session: ChatSession) {}
-  findAllSessions() {}
-}
-
-export class InMemorySessionStore extends SessionStore {
-  sessions: Map<string, ChatSession>;
-  constructor() {
-    super();
-    this.sessions = new Map();
-  }
-
-  findSession(id: string) {
-    return this.sessions.get(id);
-  }
-
-  saveSession(id: string, session: ChatSession) {
-    this.sessions.set(id, session);
-  }
-
-  findAllSessions() {
-    return [...this.sessions.values()];
-  }
-}
-
-/* abstract */ class MessageStore {
-  saveMessage(message: Message) {}
-  findMessagesForUser(userId: string) {}
-}
-
-export class InMemoryMessageStore extends MessageStore {
-  messages: Message[];
-  constructor() {
-    super();
-    this.messages = [];
-  }
-
-  saveMessage(message: Message) {
-    this.messages.push(message);
-  }
-
-  findMessagesForUser(userId: string) {
-    return this.messages.filter(
-      ({ from, to }) => from === userId || to === userId
-    );
   }
 }

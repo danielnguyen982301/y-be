@@ -436,14 +436,20 @@ export const createRepostOfReply = catchAsync(async (req, res, next) => {
     repost: repostId,
   });
 
+  let notif;
+
   if (!reply.author.equals(currentUserId)) {
-    await Notification.create({
+    notif = await Notification.create({
       sender: currentUserId,
       event: "repost",
       recipient: reply.author,
       repostType: "Reply",
       repost: repostId,
     });
+    notif = await notif.populate([
+      { path: "sender" },
+      { path: "repost", populate: "author" },
+    ]);
   }
 
   await calculatePostCount(currentUserId);
@@ -452,7 +458,7 @@ export const createRepostOfReply = catchAsync(async (req, res, next) => {
   return sendResponse(
     res,
     200,
-    { thread, repostCount },
+    { thread, repostCount, notif },
     null,
     "Repost Successfully"
   );
@@ -469,13 +475,13 @@ export const undoRepostOfReply = catchAsync(async (req, res, next) => {
   if (!thread) throw new AppError(404, "Repost Not Found", "Undo Repost Error");
 
   await thread.delete();
-  await Notification.deleteOne({
+  let notif = await Notification.findOneAndDelete({
     sender: currentUserId,
     event: "repost",
     recipient: reply.author,
     repostType: "Reply",
     repost: repostId,
-  });
+  }).populate([{ path: "sender" }, { path: "repost", populate: "author" }]);
 
   await calculatePostCount(currentUserId);
   const repostCount = await calculateRepostCount(repostId);
@@ -483,7 +489,7 @@ export const undoRepostOfReply = catchAsync(async (req, res, next) => {
   return sendResponse(
     res,
     200,
-    { thread, repostCount },
+    { thread, repostCount, notif },
     null,
     "Undo Repost Successfully"
   );
@@ -531,6 +537,15 @@ export const deleteSingleReply = catchAsync(async (req, res, next) => {
     ],
   });
   const relatedThreadIds = relatedThreads.map((thread) => thread._id);
+  const relatedNotifs = await Notification.find({
+    $or: [
+      { mentionLocation: { $in: relatedReplyIds } },
+      { repost: { $in: relatedReplyIds } },
+      { reply: { $in: relatedReplyIds } },
+    ],
+  });
+  const relatedNotifIds = relatedNotifs.map((notif) => notif._id);
+  const relatedNotifRecipients = relatedNotifs.map((notif) => notif.recipient);
 
   await Bookmark.deleteMany({
     targetType: "Reply",
@@ -544,11 +559,7 @@ export const deleteSingleReply = catchAsync(async (req, res, next) => {
     _id: { $in: relatedThreadIds },
   });
   await Notification.deleteMany({
-    $or: [
-      { mentionLocation: { $in: relatedReplyIds } },
-      { repost: { $in: relatedReplyIds } },
-      { reply: { $in: relatedReplyIds } },
-    ],
+    _id: { $in: relatedNotifIds },
   });
   await Reply.deleteMany({ _id: { $in: relatedReplyIds } });
 
@@ -557,7 +568,7 @@ export const deleteSingleReply = catchAsync(async (req, res, next) => {
   return sendResponse(
     res,
     200,
-    { reply, replyCount },
+    { reply, replyCount, notifRecipients: relatedNotifRecipients },
     null,
     "Delete Reply Successfully"
   );
