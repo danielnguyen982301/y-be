@@ -1,10 +1,12 @@
 import express from "express";
+
 import { joiValidate } from "../middlewares/validationMiddleware";
-import { createHashtag, getHashTags } from "../controllers/hashtag.controller";
 import {
   createHashTagsSchema,
   getHashTagsSchema,
 } from "../validations/hashtagSchema";
+import { getHashTags } from "../controllers/hashtag/getHashtags";
+import { createHashtag } from "../controllers/hashtag/createHashtag";
 
 const router = express.Router();
 

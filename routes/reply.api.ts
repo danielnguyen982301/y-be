@@ -1,4 +1,5 @@
 import express from "express";
+
 import { joiValidate } from "../middlewares/validationMiddleware";
 import {
   createReplySchema,
@@ -10,16 +11,14 @@ import {
   undoRepostOfReplySchema,
   updateReplySchema,
 } from "../validations/replySchema";
-import {
-  createNewReply,
-  createRepostOfReply,
-  deleteSingleReply,
-  getRepliesOfSingleTarget,
-  getRepliesOfSingleUser,
-  getSingleReply,
-  undoRepostOfReply,
-  updateSingleReply,
-} from "../controllers/reply.controller";
+import { createNewReply } from "../controllers/reply/createReply";
+import { getRepliesOfSingleTarget } from "../controllers/reply/getRepliesOfSingleTarget";
+import { getRepliesOfSingleUser } from "../controllers/reply/getRepliesOfSingleUser";
+import { updateSingleReply } from "../controllers/reply/updateSingleReply";
+import { deleteSingleReply } from "../controllers/reply/deleteSingleReply";
+import { getSingleReply } from "../controllers/reply/getSingleReply";
+import { createRepostOfReply } from "../controllers/reply/createRepostOfReply";
+import { undoRepostOfReply } from "../controllers/reply/undoRepostOfReply";
 
 const router = express.Router();
 

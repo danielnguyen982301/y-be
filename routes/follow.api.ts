@@ -1,4 +1,5 @@
 import express from "express";
+
 import { joiValidate } from "../middlewares/validationMiddleware";
 import {
   createFollowSchema,
@@ -6,12 +7,10 @@ import {
   getFollowerListSchema,
   unfollowSchema,
 } from "../validations/followSchema";
-import {
-  followUser,
-  getFolloweeList,
-  getFollowerList,
-  unfollowUser,
-} from "../controllers/follow.controller";
+import { followUser } from "../controllers/follow/followUser";
+import { unfollowUser } from "../controllers/follow/unfollowUser";
+import { getFollowerList } from "../controllers/follow/getFollowerList";
+import { getFolloweeList } from "../controllers/follow/getFolloweeList";
 
 const router = express.Router();
 

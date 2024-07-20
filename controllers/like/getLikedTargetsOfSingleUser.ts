@@ -1,22 +1,11 @@
-import mongoose, { Types } from "mongoose";
-import { AppError, catchAsync, sendResponse } from "../helpers/utils";
-import Like from "../models/Like";
-import User from "../models/User";
-import UserThread from "../models/UserThread";
-import Bookmark from "../models/Bookmark";
-import Follow from "../models/Follow";
+import { Types } from "mongoose";
 
-const calculateLikes = async (
-  targetId: Types.ObjectId,
-  targetType: "Post" | "Reply"
-) => {
-  const likeCount = await Like.countDocuments({
-    target: targetId,
-    targetType,
-  });
-  await mongoose.model(targetType).findByIdAndUpdate(targetId, { likeCount });
-  return likeCount;
-};
+import { AppError, catchAsync, sendResponse } from "../../helpers/utils";
+import Like from "../../models/Like";
+import User from "../../models/User";
+import UserThread from "../../models/UserThread";
+import Bookmark from "../../models/Bookmark";
+import Follow from "../../models/Follow";
 
 export const getLikedTargetsOfSingleUser = catchAsync(
   async (req, res, next) => {
@@ -136,39 +125,3 @@ export const getLikedTargetsOfSingleUser = catchAsync(
     );
   }
 );
-
-export const saveLike = catchAsync(async (req, res, next) => {
-  const { targetType, target: targetId } = req.body;
-
-  // Check target exists
-  const targetObj = await mongoose.model(targetType).findById(targetId);
-  if (!targetObj)
-    throw new AppError(404, `${targetType} Not Found`, "Create Like Error");
-
-  // Find the reaction if exists
-  let like = await Like.findOne({
-    targetType,
-    target: targetId,
-    author: req.userId,
-  });
-
-  // If there's no reaction in DB -> create a new one
-  if (!like) {
-    like = await Like.create({
-      targetType,
-      target: targetId,
-      author: req.userId,
-    });
-  } else {
-    await like.delete();
-  }
-
-  const likeCount = await calculateLikes(targetId, targetType);
-  return sendResponse(
-    res,
-    200,
-    { likeCount },
-    null,
-    "Save Reaction Successfully"
-  );
-});

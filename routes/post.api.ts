@@ -1,4 +1,5 @@
 import express from "express";
+
 import { joiValidate } from "../middlewares/validationMiddleware";
 import {
   createPostSchema,
@@ -11,17 +12,15 @@ import {
   undoRepostOfPostSchema,
   updatePostSchema,
 } from "../validations/postSchema";
-import {
-  createNewPost,
-  createRepostOfPost,
-  deleteSinglePost,
-  getAllOriginalPosts,
-  getPostsOfSingleUser,
-  getSinglePost,
-  getThreadsOfFolloweesAndCurrentUser,
-  undoRepostOfPost,
-  updateSinglePost,
-} from "../controllers/post.controller";
+import { getOriginalPosts } from "../controllers/post/getOriginalPosts";
+import { getThreadsOfFollowees } from "../controllers/post/getThreadsOfFollowees";
+import { getPostsOfSingleUser } from "../controllers/post/getPostsOfSingleUser";
+import { createNewPost } from "../controllers/post/createPost";
+import { createRepostOfPost } from "../controllers/post/createRepostOfPost";
+import { undoRepostOfPost } from "../controllers/post/undoRepostOfPost";
+import { updateSinglePost } from "../controllers/post/updateSinglePost";
+import { getSinglePost } from "../controllers/post/getSinglePost";
+import { deleteSinglePost } from "../controllers/post/deleteSinglePost";
 
 const router = express.Router();
 
@@ -31,7 +30,7 @@ const router = express.Router();
  * @access Login required
  */
 
-router.get("/", joiValidate(getAllPostsSchema, "query"), getAllOriginalPosts);
+router.get("/", joiValidate(getAllPostsSchema, "query"), getOriginalPosts);
 
 /**
  * @route GET /posts/followees?page=1&limit=10
@@ -42,7 +41,7 @@ router.get("/", joiValidate(getAllPostsSchema, "query"), getAllOriginalPosts);
 router.get(
   "/followees",
   joiValidate(getPostsOfFolloweesSchema, "query"),
-  getThreadsOfFolloweesAndCurrentUser
+  getThreadsOfFollowees
 );
 
 /**

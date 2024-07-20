@@ -1,13 +1,12 @@
 import express from "express";
+
 import { joiValidate } from "../middlewares/validationMiddleware";
 import {
   getLikedTargetsOfSingleUserSchema,
   saveLikeSchema,
 } from "../validations/likeSchema";
-import {
-  getLikedTargetsOfSingleUser,
-  saveLike,
-} from "../controllers/like.controller";
+import { saveLike } from "../controllers/like/saveLike";
+import { getLikedTargetsOfSingleUser } from "../controllers/like/getLikedTargetsOfSingleUser";
 
 const router = express.Router();
 

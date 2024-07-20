@@ -1,7 +1,9 @@
 import mongoose, { Types } from "mongoose";
-import { AuthenticatedRequest, sendResponse } from "../helpers/utils";
 import { NextFunction, Response } from "express";
 import Joi from "joi";
+import { AuthenticatedRequest } from "../types";
+
+import { sendResponse } from "../helpers/utils";
 
 export const checkValidID = (paramsID: Types.ObjectId) => {
   if (!mongoose.Types.ObjectId.isValid(paramsID)) throw new Error("Invalid ID");

@@ -1,7 +1,9 @@
 import { NextFunction, Request, Response } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
-import { AppError, AuthenticatedRequest } from "../helpers/utils";
 import { Types } from "mongoose";
+import { AuthenticatedRequest } from "../types";
+
+import { AppError } from "../helpers/utils";
 
 type ExtendedJWTPayload = JwtPayload & { _id: Types.ObjectId };
 

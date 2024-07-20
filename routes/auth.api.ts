@@ -1,7 +1,7 @@
 import express from "express";
 import { joiValidate } from "../middlewares/validationMiddleware";
 import { authSchema } from "../validations/authSchema";
-import { loginWithEmail } from "../controllers/auth.controller";
+import { loginWithEmail } from "../controllers/auth/loginWithEmail";
 
 const router = express.Router();
 

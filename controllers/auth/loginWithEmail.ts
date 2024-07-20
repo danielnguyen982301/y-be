@@ -1,7 +1,8 @@
 import { NextFunction, Request, Response } from "express";
-import { AppError, catchAsync, sendResponse } from "../helpers/utils";
 import bcrypt from "bcryptjs";
-import User from "../models/User";
+
+import { AppError, catchAsync, sendResponse } from "../../helpers/utils";
+import User from "../../models/User";
 
 export const loginWithEmail = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {

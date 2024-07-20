@@ -1,14 +1,13 @@
 import express from "express";
+
 import { joiValidate } from "../middlewares/validationMiddleware";
 import {
   createMentionNotifSchema,
   updateNotifStatusSchema,
 } from "../validations/notificationSchema";
-import {
-  createMentionNotification,
-  getNotifications,
-  updateNotificationStatus,
-} from "../controllers/notification.controller";
+import { createMentionNotification } from "../controllers/notification/createMentionNotification";
+import { getNotifications } from "../controllers/notification/getNotifications";
+import { updateNotificationStatus } from "../controllers/notification/updateNotificationStatus";
 
 const router = express.Router();
 

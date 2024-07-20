@@ -1,16 +1,15 @@
 import express from "express";
+
 import { joiValidate } from "../middlewares/validationMiddleware";
 import {
   createMessageSchema,
   getSingleChatUserSchema,
   updateMessageStatusSchema,
 } from "../validations/messageSchema";
-import {
-  createNewMessage,
-  getChatUsers,
-  getSingleChatUser,
-  updateMessageStatus,
-} from "../controllers/message.controller";
+import { createNewMessage } from "../controllers/message/createMessage";
+import { getChatUsers } from "../controllers/message/getChatUsers";
+import { getSingleChatUser } from "../controllers/message/getSingleChatUser";
+import { updateMessageStatus } from "../controllers/message/updateMessageStatus";
 
 const router = express.Router();
 

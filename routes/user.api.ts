@@ -1,4 +1,5 @@
 import express from "express";
+
 import { joiValidate } from "../middlewares/validationMiddleware";
 import {
   createUserSchema,
@@ -6,14 +7,12 @@ import {
   getUsersSchema,
   updateUserProfileSchema,
 } from "../validations/userSchema";
-import {
-  getCurrentUser,
-  getSingleUser,
-  getUsers,
-  register,
-  updateProfile,
-} from "../controllers/user.controller";
 import { loginRequired } from "../middlewares/authentication";
+import { register } from "../controllers/user/register";
+import { getUsers } from "../controllers/user/getUsers";
+import { getCurrentUser } from "../controllers/user/getCurrentUser";
+import { getSingleUser } from "../controllers/user/getSingleUser";
+import { updateUserProfile } from "../controllers/user/updateUserProfile";
 
 const router = express.Router();
 
@@ -69,7 +68,7 @@ router.put(
     joiValidate(updateUserProfileSchema, "params"),
     joiValidate(updateUserProfileSchema, "body"),
   ],
-  updateProfile
+  updateUserProfile
 );
 
 export default router;

@@ -1,15 +1,14 @@
 import express from "express";
+
 import { joiValidate } from "../middlewares/validationMiddleware";
-import {
-  createBookmark,
-  getBookmarks,
-  removeBookmark,
-} from "../controllers/bookmark.controller";
 import {
   createBookmarkSchema,
   getBookmarksSchema,
   removeBookmarkSchema,
 } from "../validations/bookmarkSchema";
+import { getBookmarks } from "../controllers/bookmark/getBookmarks";
+import { createBookmark } from "../controllers/bookmark/createBookmark";
+import { removeBookmark } from "../controllers/bookmark/removeBookmark";
 
 const router = express.Router();
 

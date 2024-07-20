@@ -1,54 +1,11 @@
-import mongoose from "mongoose";
-import { AppError, catchAsync, sendResponse } from "../helpers/utils";
-import Notification from "../models/Notification";
 import { Types } from "mongoose";
-import Like from "../models/Like";
-import UserThread from "../models/UserThread";
-import Bookmark from "../models/Bookmark";
-import Follow from "../models/Follow";
 
-export const createMentionNotification = catchAsync(async (req, res, next) => {
-  const currentUserId = req.userId as Types.ObjectId;
-  const { mentionLocationType, mentionLocation, mentionedTargets } = req.body;
-
-  const targetObj = await mongoose
-    .model(mentionLocationType)
-    .findById(mentionLocation);
-  if (!targetObj)
-    throw new AppError(
-      404,
-      `${mentionLocationType} Not Found`,
-      "Create Mention Notification Error"
-    );
-
-  const transformedIds = mentionedTargets.map(
-    (userId: string) => new mongoose.Types.ObjectId(userId)
-  );
-
-  const mentionedTargetsWithoutCurrentUser = transformedIds.filter(
-    (target: Types.ObjectId) => !target.equals(currentUserId)
-  );
-
-  const notifs = await Promise.all(
-    mentionedTargetsWithoutCurrentUser.map(async (target: Types.ObjectId) => {
-      return await Notification.create({
-        sender: currentUserId,
-        event: "mention",
-        recipient: target,
-        mentionLocationType,
-        mentionLocation,
-      });
-    })
-  );
-
-  return sendResponse(
-    res,
-    200,
-    notifs,
-    null,
-    "Create Mention Notification Successfully"
-  );
-});
+import { catchAsync, sendResponse } from "../../helpers/utils";
+import Notification from "../../models/Notification";
+import Like from "../../models/Like";
+import UserThread from "../../models/UserThread";
+import Bookmark from "../../models/Bookmark";
+import Follow from "../../models/Follow";
 
 export const getNotifications = catchAsync(async (req, res, next) => {
   const currentUserId = req.userId as Types.ObjectId;
@@ -183,31 +140,5 @@ export const getNotifications = catchAsync(async (req, res, next) => {
     { notifs: notifsWithContent },
     null,
     "Get Notification List Successfully"
-  );
-});
-
-export const updateNotificationStatus = catchAsync(async (req, res, next) => {
-  const notifIds = req.body.notifs;
-
-  const notifs = await Notification.find({ _id: { $in: notifIds } });
-  if (notifs.length !== notifIds.length)
-    throw new AppError(
-      404,
-      `Notification Not Found`,
-      "Update Notification Status Error"
-    );
-
-  const updatedStatusNotifs = await Notification.updateMany(
-    { _id: { $in: notifIds } },
-    { isRead: true },
-    { new: true }
-  );
-
-  return sendResponse(
-    res,
-    200,
-    updatedStatusNotifs,
-    null,
-    "Update Notification Status Successfully"
   );
 });

@@ -1,23 +1,10 @@
-import mongoose, { Types } from "mongoose";
-import { AppError, catchAsync, sendResponse } from "../helpers/utils";
-import Bookmark from "../models/Bookmark";
-import Like from "../models/Like";
-import UserThread from "../models/UserThread";
-import Follow from "../models/Follow";
+import { Types } from "mongoose";
 
-const calculateBookmarkCount = async (
-  targetId: Types.ObjectId,
-  targetType: "Post" | "Reply"
-) => {
-  const bookmarkCount = await Bookmark.countDocuments({
-    target: targetId,
-    targetType,
-  });
-  await mongoose
-    .model(targetType)
-    .findByIdAndUpdate(targetId, { bookmarkCount });
-  return bookmarkCount;
-};
+import { catchAsync, sendResponse } from "../../helpers/utils";
+import Bookmark from "../../models/Bookmark";
+import Like from "../../models/Like";
+import UserThread from "../../models/UserThread";
+import Follow from "../../models/Follow";
 
 export const getBookmarks = catchAsync(async (req, res, next) => {
   const currentUserId = req.userId as Types.ObjectId;
@@ -118,71 +105,5 @@ export const getBookmarks = catchAsync(async (req, res, next) => {
     { bookmarks: bookmarksWithContent, totalPages, count },
     null,
     "Get Bookmark List Successfully"
-  );
-});
-
-export const createBookmark = catchAsync(async (req, res, next) => {
-  const currentUserId = req.userId;
-  const { targetType, targetId } = req.body;
-
-  const targetObj = await mongoose.model(targetType).findById(targetId);
-  if (!targetObj)
-    throw new AppError(404, `${targetType} Not Found`, "Create Bookmark Error");
-
-  let bookmark = await Bookmark.findOne({
-    user: currentUserId,
-    targetType,
-    target: targetId,
-  });
-  if (bookmark)
-    throw new AppError(
-      409,
-      `You already bookmarked this ${targetType}`,
-      "Create Bookmark Error"
-    );
-
-  bookmark = await Bookmark.create({
-    user: currentUserId,
-    targetType,
-    target: targetId,
-  });
-
-  const bookmarkCount = await calculateBookmarkCount(targetId, targetType);
-
-  return sendResponse(
-    res,
-    200,
-    { bookmark, bookmarkCount },
-    null,
-    "Save Bookmark Successfully"
-  );
-});
-
-export const removeBookmark = catchAsync(async (req, res, next) => {
-  const currentUserId = req.userId;
-  const { targetType, targetId } = req.body;
-
-  const targetObj = await mongoose.model(targetType).findById(targetId);
-  if (!targetObj)
-    throw new AppError(404, `${targetType} Not Found`, "Remove Bookmark Error");
-
-  let bookmark = await Bookmark.findOne({
-    user: currentUserId,
-    targetType,
-    target: targetId,
-  });
-  if (!bookmark)
-    throw new AppError(404, `Bookmark Not Found`, "Remove Bookmark Error");
-
-  await bookmark.delete();
-
-  const bookmarkCount = await calculateBookmarkCount(targetId, targetType);
-
-  return sendResponse(
-    res,
-    200,
-    { bookmark, bookmarkCount },
-    null,
-    "Remove Bookmark Successfully"
   );
 });

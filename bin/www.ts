@@ -8,7 +8,7 @@ import app from "../app";
 import debugM from "debug";
 import http from "http";
 import { Server } from "socket.io";
-import { FollowNotif, Message, RepostNotif } from "../helpers/utils";
+import { FollowNotif, Message, RepostNotif } from "../types";
 
 // import socket from 'socket.io';
 
@@ -72,13 +72,11 @@ io.use((socket, next) => {
 io.on("connection", (socket) => {
   socket.join(socket.data.userId);
 
-  // forward the private message to the right recipient (and to other tabs of the sender)
   socket.on("privateMessage", (message) => {
     socket
       .to(message.to)
       .to(socket.data.userId)
       .emit("privateMessage", message);
-    // messageStore.saveMessage(message);
   });
 
   socket.on("mentionNotif", (mentionedTargets) => {
@@ -99,22 +97,6 @@ io.on("connection", (socket) => {
 
   socket.on("deleteNotif", (recipients) => {
     socket.to(recipients).emit("deleteNotif");
-  });
-
-  // notify users upon disconnection
-  socket.on("disconnect", async () => {
-    const matchingSockets = await io.in(socket.data.userId).fetchSockets();
-    const isDisconnected = matchingSockets.length === 0;
-    // if (isDisconnected) {
-    //   // notify other users
-    //   socket.broadcast.emit("user disconnected", socket.userID);
-    //   // update the connection status of the session
-    //   sessionStore.saveSession(socket.sessionID, {
-    //     userID: socket.userID,
-    //     username: socket.username,
-    //     connected: false,
-    //   });
-    // }
   });
 });
 
