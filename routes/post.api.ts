@@ -95,7 +95,7 @@ router.delete(
 );
 
 /**
- * @route PUT /posts/:id
+ * @route PUT /posts/original/:id
  * @description Update a post
  * @body {content, mediaFile}
  * @access Login required
@@ -111,7 +111,7 @@ router.put(
 );
 
 /**
- * @route GET /posts/:id
+ * @route GET /posts/original/:id
  * @description Get a single post
  * @access Login required
  */
@@ -123,7 +123,7 @@ router.get(
 );
 
 /**
- * @route DELETE /posts/:id
+ * @route DELETE /posts/original/:id
  * @description Delete
  * @access Login required
  */

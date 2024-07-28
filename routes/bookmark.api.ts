@@ -21,7 +21,7 @@ const router = express.Router();
 router.get("/", joiValidate(getBookmarksSchema, "query"), getBookmarks);
 
 /**
- * @route POST /hashtags
+ * @route POST /bookmarks
  * @description Create bookmark of a post or a reply
  * @body {targetType, targetId}
  * @access Login required
@@ -30,7 +30,7 @@ router.get("/", joiValidate(getBookmarksSchema, "query"), getBookmarks);
 router.post("/", joiValidate(createBookmarkSchema, "body"), createBookmark);
 
 /**
- * @route DELETE /hashtags
+ * @route DELETE /bookmarks
  * @description Delete bookmark of a post or a reply
  * @body {targetType, targetId}
  * @access Login required

@@ -48,7 +48,7 @@ router.get(
 
 /**
  * @route GET /replies/user/:userId?page=1&limit=10
- * @description Get replies of a post or a reply
+ * @description Get replies of a single user
  * @access Login required
  */
 
@@ -62,7 +62,7 @@ router.get(
 );
 
 /**
- * @route PUT /replies/:id
+ * @route PUT /replies/original/:id
  * @description Update a reply
  * @body {content, mediaFile}
  * @access Login required
@@ -78,7 +78,7 @@ router.put(
 );
 
 /**
- * @route DELETE /replies/:id
+ * @route DELETE /replies/original/:id
  * @description Delete a reply
  * @access Login required
  */
@@ -90,7 +90,7 @@ router.delete(
 );
 
 /**
- * @route GET /replies/:id
+ * @route GET /replies/original/:id
  * @description Get details of a reply
  * @access Login required
  */

@@ -49,7 +49,7 @@ router.get(
 
 /**
  * @route GET /follows/:userId/followees
- * @description Get a list of sent pending requests
+ * @description Get a list of followees of user
  * @access Login required
  */
 
